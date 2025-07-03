@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uncooperative Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .calculator {
+            max-width: 350px;
+            border-radius: 50px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .display {
+            height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .previous-operand {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.7);
+            height: 24px;
+        }
+        
+        .current-operand {
+            font-size: 1.0rem;
+            word-wrap: break-word;
+            word-break: break-all;
+            width: 100%;
+            text-align: right;
+        }
+        
+        button {
+            border: none;
+            outline: none;
+            font-size: 1.5rem;
+            transition: all 0.2s ease;
+        }
+        
+        button:hover {
+            opacity: 0.8;
+            transform: scale(0.95);
+        }
+        
+        button:active {
+            transform: scale(0.9);
+        }
+        
+        .span-2 {
+            grid-column: span 2;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div class="calculator bg-gradient-to-br from-pink-500 to-pink-700">
+        <div class="display bg-gradient-to-b from-pink-700 to-pink-900 text-white">
+            <div class="previous-operand" id="previous-operand"></div>
+            <div class="current-operand" id="current-operand">0</div>
+        </div>
+        
+        <div class="buttons grid grid-cols-4 gap-0.5 bg-gray-100 p-1">
+            <!-- Row 1 -->
+            <button class="bg-gray-200 hover:bg-gray-300 p-6" onclick="clearAll()">AC</button>
+            <button class="bg-gray-200 hover:bg-gray-300 p-6" onclick="deleteLastDigit()">DEL</button>
+            <button class="bg-gray-200 hover:bg-gray-300 p-6" onclick="appendOperator('/')">/</button>
+            <button class="bg-pink-500 hover:bg-pink-600 text-white p-6" onclick="appendOperator('*')">×</button>
+            
+            <!-- Row 2 -->
+            <button class="bg-gray-700 hover:bg-gray-800 text-white p-6" onclick="appendNumber('7')">7</button>
+            <button class="bg-gray-700 hover:bg-gray-800 text-white p-6" onclick="appendNumber('8')">8</button>
+            <button class="bg-gray-700 hover:bg-gray-800 text-white p-6" onclick="appendNumber('9')">9</button>
+            <button class="bg-pink-500 hover:bg-pink-600 text-white p-6" onclick="appendOperator('-')">−</button>
+            
+            <!-- Row 3 -->
+            <button class="bg-gray-700 hover:bg-gray-800 text-white p-6" onclick="appendNumber('4')">4</button>
+            <button class="bg-gray-700 hover:bg-gray-800 text-white p-6" onclick="appendNumber('5')">5</button>
+            <button class="bg-gray-700 hover:bg-gray-800 text-white p-6" onclick="appendNumber('6')">6</button>
+            <button class="bg-pink-500 hover:bg-pink-600 text-white p-6" onclick="appendOperator('+')">+</button>
+            
+            <!-- Row 4 -->
+            <button class="bg-gray-700 hover:bg-gray-800 text-white p-6" onclick="appendNumber('1')">1</button>
+            <button class="bg-gray-700 hover:bg-gray-800 text-white p-6" onclick="appendNumber('2')">2</button>
+            <button class="bg-gray-700 hover:bg-gray-800 text-white p-6" onclick="appendNumber('3')">3</button>
+            <button class="bg-pink-300 hover:bg-pink-400 text-pink-900 p-6" style="grid-row: span 2;" onclick="calculate()">=</button>
+            
+            <!-- Row 5 -->
+            <button class="bg-gray-700 hover:bg-gray-800 text-white p-6 span-2" onclick="appendNumber('0')">0</button>
+            <button class="bg-gray-700 hover:bg-gray-800 text-white p-6" onclick="appendNumber('.')">.</button>
+        </div>
+    </div>
+
+    <script>
+        let currentOperand = '0';
+        let previousOperand = '';
+        let operation = null;
+        let shouldResetScreen = false;
+        let responseIndex = 0;
+        
+        const currentOperandElement = document.getElementById('current-operand');
+        const previousOperandElement = document.getElementById('previous-operand');
+        
+        function appendNumber(number) {
+            if (currentOperand === '0' || shouldResetScreen) {
+                currentOperand = '';
+                shouldResetScreen = false;
+            }
+            
+            if (number === '.' && currentOperand.includes('.')) return;
+            currentOperand += number;
+            updateDisplay();
+        }
+        
+        function appendOperator(operator) {
+            if (currentOperand === '') return;
+            
+            if (operation !== null) calculate(true);
+            
+            operation = operator;
+            previousOperand = currentOperand;
+            currentOperand = '';
+            updateDisplay();
+        }
+        
+        function calculate(isOperator = false) {
+            let computation;
+            const prev = parseFloat(previousOperand);
+            const current = parseFloat(currentOperand);
+            
+            if (isNaN(prev) || isNaN(current)) return;
+            
+            switch (operation) {
+                case '+':
+                    computation = prev + current;
+                    break;
+                case '-':
+                    computation = prev - current;
+                    break;
+                case '*':
+                    computation = prev * current;
+                    break;
+                case '/':
+                    computation = prev / current;
+                    break;
+                default:
+                    return;
+            }
+            
+            if (isOperator) {
+                currentOperand = computation.toString();
+            } else {
+                // Select random response completely unrelated to computation
+                const responses = [
+                    "Wankosayo ┐⁠(⁠ ⁠˘⁠_⁠˘⁠)⁠┌",
+                    "Joke lang baby (^-^)",
+                    "Eto talaga yon mahal (>_<)",
+                    "Galing mo baby! ᕙ⁠(⁠~ ᴗ⁠ ~⁠)⁠ᕗ",
+                    "Proud ako sayo mahal palagi (⁠^⁠^⁠)",
+                    "I love you so much mahal (⁠｡⁠♡⁠‿⁠♡⁠｡⁠)",
+                    "I miss you baby (⁠っ⁠˘̩⁠^˘̩⁠)⁠っ",
+                    "Miss miss ko na ikaw)):",
+                    "Baby take care po >⁠.⁠<",
+                    "Drink more water baby (⁠ꈍ⁠ᴗ⁠ꈍ⁠)",
+                    "Don't skip your meals (⁠◠⁠‿⁠・⁠)⁠—⁠☆",
+                    "Baby be healthy (⁠つ⁠≧⁠▽⁠≦⁠)⁠つ",
+                    "I love you Clarisse baby ⊂⁠(*⁠^⁠▽⁠^⁠*)⊃",
+                    "I miss you so much)):",
+                    "Lovelove ko ikaw (⁠灬⁠º⁠‿⁠º⁠灬⁠)⁠♡",
+                    "Mwaaaaaapss (⁠づ⁠￣⁠ ⁠³⁠￣⁠)⁠づ"
+                
+                ];
+                currentOperand = responses[responseIndex];
+                responseIndex = (responseIndex + 1) % responses.length;
+            }
+            operation = null;
+            previousOperand = '';
+            shouldResetScreen = true;
+            updateDisplay();
+        }
+        
+        function clearAll() {
+            currentOperand = '0';
+            previousOperand = '';
+            operation = null;
+            responseIndex = 0;
+            updateDisplay();
+        }
+        
+        function deleteLastDigit() {
+            if (currentOperand.length === 1 || (currentOperand.length === 2 && currentOperand.startsWith('-'))) {
+                currentOperand = '0';
+            } else {
+                currentOperand = currentOperand.slice(0, -1);
+            }
+            updateDisplay();
+        }
+        
+        function updateDisplay() {
+            currentOperandElement.textContent = currentOperand;
+            
+            if (operation) {
+                previousOperandElement.textContent = `${previousOperand} ${operation}`;
+            } else {
+                previousOperandElement.textContent = previousOperand;
+            }
+        }
+    </script>
+</body>
+</html>
